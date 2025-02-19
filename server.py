@@ -1,5 +1,6 @@
 import socket   # Python's built-in networking module
 from gachamon import Gachamon
+import time
 
 def main():
     # Create a new TCP socket for network communication
@@ -32,11 +33,24 @@ def main():
     conn.send("ready".encode())
     
     print("game starting")
-    game.gacha()
+    # game.gacha()
 
-    try: 
+    try: # keeps the game running
         while True:
             print("game online")
+
+
+
+
+
+
+
+
+
+
+
+
+
 
     except Exception as e:
         print(f"Error: {e}")
@@ -45,10 +59,7 @@ def main():
         conn.close()
         server.close()   
 
-    
-    
 
-
-
+# Only run the server if this file is run directly (not imported)
 if __name__ == "__main__":
     main()

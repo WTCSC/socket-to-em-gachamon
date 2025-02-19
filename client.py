@@ -1,5 +1,6 @@
 import socket   # Python's built-in networking module
 from gachamon import Gachamon
+import time
 
 def main():
     # Create a TCP socket for client-server communication
@@ -27,10 +28,29 @@ def main():
         game = Gachamon()
         print("you have joined the game")
 
-        try: 
+        try: # keeps the game running
             while True:
                 print("game online")
-        
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
         except ConnectionRefusedError:
         # This exception occurs when we can't connect to the server
             print("Could not connect to server. Make sure server is running and address is correct.")
@@ -40,11 +60,8 @@ def main():
         finally:
         # Always close the network connection when we're done
             client.close()
-                  
-
-
-
-
+    
+    #connection status              
     except ConnectionRefusedError:
         # This exception occurs when we can't connect to the server
         print("Could not connect to server. Make sure server is running and address is correct.")
@@ -54,8 +71,6 @@ def main():
     finally:
         # Always close the network connection when we're done
         client.close()
-
-
 
 
 # Only run the client if this file is run directly
