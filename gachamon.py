@@ -141,10 +141,7 @@ class Gachamon:
       if result%2 == 0:
         crit = 2
 
-
       x = math.floor(((x * re) * crit) * (1 - defence))
-
-
       return x
     
     def display_health_bar(health_percentage):
@@ -156,6 +153,11 @@ class Gachamon:
         print(f"Health: {health_bar} {health_percentage}%")
 
 
-
-
-
+    gachamon_guys = [
+      {'name': 'bulburtle', 'health': 120, 'dmg': 10, 'element': 'green', 'defence': .4},
+      {'name': 'dit-reo', 'health': 170, 'dmg': 20, 'element': 'fire', 'defence': .25},
+      {'name': 'nilou', 'health': 200, 'dmg': 15, 'element': 'water', 'defence': .15},
+      {'name': 'green goofy', 'health': 150, 'dmg': 15, 'element': 'green', 'defence': .1},
+      {'name': 'mew one', 'health': 200, 'dmg': 13, 'element': 'fire', 'defence': .15},
+      {'name': 'inkler', 'health': 100, 'dmg': 25, 'element': 'water', 'defence': .25},
+    ]
