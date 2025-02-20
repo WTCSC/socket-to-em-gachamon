@@ -1,7 +1,7 @@
 import random
 import time
 import os
-
+import math
 
 class Gachamon:
     def _init_(self):
@@ -123,6 +123,30 @@ class Gachamon:
     #     elif result == "gameover":
     #         print(f"{WIN_ART}")
 
+
+
+    def dmg(self, x, element, defence):
+      re = 1
+      if element == "fire":
+        re = 2
+      elif element == "water":
+        re = 1.85
+      elif element == "green":
+        re = 3
+      else:
+        print ("inavlid element")
+      
+      crit = 1
+      result = random.randint(1, 10)
+      if result%2 == 0:
+        crit = 2
+
+
+      x = math.floor(((x * re) * crit) * (1 - defence))
+
+
+      return x
+    
     def display_health_bar(health_percentage):
         total_blocks = 20
         filled_blocks = int(total_blocks * (health_percentage / 100))
