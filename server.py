@@ -39,8 +39,10 @@ def main():
         while True:
             print("game online")
 
+            turn = True
 
-
+            #send back the result
+            conn.send(turn.encode())
 
 
 

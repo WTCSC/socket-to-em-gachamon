@@ -32,9 +32,13 @@ def main():
             while True:
                 print("game online")
 
+                turn = "heads"
 
+                client.send(turn.encode())
+                response = client.recv(1024).decode()
 
-
+                if response == True:
+                    print("response resived")
 
 
 
