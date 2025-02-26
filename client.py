@@ -37,12 +37,17 @@ def main():
     # The port number must match the server's port for successful connection
     port = int(input("Enter server port: "))
     
+    username = input("Enter your username: ")
+
     try:
         # Attempt to establish a connection to the server
         # If the server isn't running, this will raise an exception
         client.connect((server_ip, port))
         print("Connected to server!")
-        
+
+
+        client.send(username.encode())
+
         # Wait for the server's ready signal before starting
         # This ensures both players are ready to begin
         client.recv(1024).decode()
@@ -63,8 +68,8 @@ def main():
                 if choice == "1":
                     client.send("LIST".encode())
                 elif choice == "2":
-                    target_id = int(input("Enter the client ID to challenge: "))
-                    client.send(f"CHALLENGE {target_id}".encode())
+                    target_username = input("Enter the username to challenge: ")
+                    client.send(f"CHALLENGE {target_username}".encode())
                 else:
                     print("Invalid choice")
             except Exception as e:

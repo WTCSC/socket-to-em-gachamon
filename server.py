@@ -6,9 +6,14 @@ import time
 
 # List to keep track of connected clients
 clients = []
+usernames = {}
 
-def handle_client(conn, addr, client_id):
-    print(f"New connection from {addr}")
+def handle_client(conn, addr):
+    # Receive and store the username
+    username = conn.recv(1024).decode()
+    clients[username] = conn
+    usernames[conn] = username
+    print(f"New connection from {addr} with username {username}")
     conn.send("ready".encode())
     
     try:
@@ -21,27 +26,27 @@ def handle_client(conn, addr, client_id):
 
             if data == "LIST":
                 # Send the list of connected clients to the requesting client
-                client_list = "Connected clients:\n" + "\n".join([f"Client {i}" for i in range(len(clients))])
+                client_list = "Connected clients:\n" + "\n".join(usernames.values())
                 conn.send(client_list.encode())
             elif data.startswith("CHALLENGE"):
-                target_id = int(data.split()[1])
-                if target_id < len(clients):
-                    clients[target_id].send(f"CHALLENGE {client_id}".encode())
+                target_username = data.split()[1]
+                if target_username in clients:
+                    clients[target_username].send(f"CHALLENGE {usernames[conn]}".encode())
                 else:
-                    conn.send("Invalid client ID".encode())
+                    conn.send("Invalid username".encode())
             elif data.startswith("ACCEPT"):
-                opponent_id = int(data.split()[1])
-                if opponent_id < len(clients):
-                    start_battle(client_id, opponent_id)
+                opponent_username = data.split()[1]
+                if opponent_username in clients:
+                    start_battle(usernames[conn], opponent_username)
                 else:
-                    conn.send("Invalid client ID".encode())
+                    conn.send("Invalid username".encode())
             elif data.startswith("MOVE"):
-                opponent_id = int(data.split()[1])
+                opponent_username = data.split()[1]
                 move = data.split()[2]
-                if opponent_id < len(clients):
-                    clients[opponent_id].send(f"MOVE {client_id} {move}".encode())
+                if opponent_username in clients:
+                    clients[opponent_username].send(f"MOVE {usernames[conn]} {move}".encode())
                 else:
-                    conn.send("Invalid client ID".encode())
+                    conn.send("Invalid username".encode())
 
 
 
@@ -49,13 +54,14 @@ def handle_client(conn, addr, client_id):
         print(f"Error with client {addr}: {e}")
     finally:
         conn.close()
-        clients.remove(conn)
+        del clients[usernames[conn]]
+        del usernames[conn]
         print(f"Connection with {addr} closed")
 
-def start_battle(client1_id, client2_id):
-    first_turn = random.choice([client1_id, client2_id])
+def start_battle(client1_username, client2_username):
+    first_turn = random.choice([client1_username, client2_username])
     clients[first_turn].send("Your turn".encode())
-    clients[1 - first_turn].send("Opponent's turn".encode())
+    clients[client1_username if first_turn == client2_username else client2_username].send("Opponent's turn".encode())
 
 def main():
     # Create a new TCP socket for network communication
@@ -77,14 +83,8 @@ def main():
 
     while True:
     # accept() blocks (waits) until a client connects
-    # It returns a new socket specifically for this connection and the client's address
         conn, addr = server.accept()
-        clients.append(conn)
-
-        # Assign client ID based on the order of connection
-        client_id = len(clients) - 1
-
-        thread = threading.Thread(target=handle_client, args=(conn, addr, client_id))
+        thread = threading.Thread(target=handle_client, args=(conn, addr))
         thread.start()
         print(f"Active connections: {threading.active_count() - 1}")  
 
