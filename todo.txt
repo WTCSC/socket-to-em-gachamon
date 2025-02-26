@@ -1,0 +1,2 @@
+fix client battle reuquest to be usernames.
+make clients that send battle reuquest wait for request to be accepted or declined or timed out. 

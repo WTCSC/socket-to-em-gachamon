@@ -27,6 +27,10 @@
 #     print_static_text(static_text)
 #     time.sleep(blink_interval)
 
+#192.168.56.1
+#python server.py
+#python client.py
+
 import os
 import time
 

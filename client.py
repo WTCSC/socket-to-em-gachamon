@@ -1,6 +1,29 @@
 import socket   # Python's built-in networking module
 from gachamon import Gachamon
+import threading
 import time
+
+def receive_messages(client):
+    while True:
+        try:
+            message = client.recv(1024).decode()
+            if message.startswith("CHALLENGE"):
+                challenger_id = int(message.split()[1])
+                print(f"Client {challenger_id} has challenged you to a battle!")
+                response = input("Do you accept the challenge? (yes/no): ")
+                if response.lower() == "yes":
+                    client.send(f"ACCEPT {challenger_id}".encode())
+                else:
+                    print("Challenge declined.")
+            elif message.startswith("MOVE"):
+                opponent_id = int(message.split()[1])
+                move = message.split()[2]
+                print(f"Opponent {opponent_id} made a move: {move}")
+            else:
+                print(message)
+        except Exception as e:
+            print(f"Error receiving message: {e}")
+            break
 
 def main():
     # Create a TCP socket for client-server communication
@@ -28,43 +51,24 @@ def main():
         game = Gachamon()
         print("you have joined the game")
 
-        try: # keeps the game running
-            while True:
-                print("game online")
+        # Start a thread to receive messages from the server
+        threading.Thread(target=receive_messages, args=(client,)).start()
 
-                turn = "heads"
+        while True:
+            print("1. View connected clients")
+            print("2. Challenge a client to a battle")
+            choice = input("Enter your choice: ")
 
-                client.send(turn.encode())
-                response = client.recv(1024).decode()
-
-                if response == True:
-                    print("response resived")
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-        except ConnectionRefusedError:
-        # This exception occurs when we can't connect to the server
-            print("Could not connect to server. Make sure server is running and address is correct.")
-        except Exception as e:
-        # Handle any other unexpected errors
-            print(f"Error: {e}")
-        finally:
-        # Always close the network connection when we're done
-            client.close()
-    
+            try:
+                if choice == "1":
+                    client.send("LIST".encode())
+                elif choice == "2":
+                    target_id = int(input("Enter the client ID to challenge: "))
+                    client.send(f"CHALLENGE {target_id}".encode())
+                else:
+                    print("Invalid choice")
+            except Exception as e:
+                print(f"Error sending message: {e}")
     #connection status              
     except ConnectionRefusedError:
         # This exception occurs when we can't connect to the server
@@ -75,7 +79,6 @@ def main():
     finally:
         # Always close the network connection when we're done
         client.close()
-
 
 # Only run the client if this file is run directly
 if __name__ == "__main__":
