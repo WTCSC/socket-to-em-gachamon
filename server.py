@@ -5,7 +5,7 @@ from gachamon import Gachamon
 import time
 
 # List to keep track of connected clients
-clients = []
+clients = {}
 usernames = {}
 
 def handle_client(conn, addr):
@@ -15,8 +15,8 @@ def handle_client(conn, addr):
     usernames[conn] = username
     print(f"New connection from {addr} with username {username}")
     conn.send("ready".encode())
-    
-    try:
+
+    try:    
         while True:
             # Receive data from client
             data = conn.recv(1024).decode()
@@ -24,29 +24,28 @@ def handle_client(conn, addr):
                 break
             print(f"Received from {addr}: {data}")
 
-            if data == "LIST":
-                # Send the list of connected clients to the requesting client
-                client_list = "Connected clients:\n" + "\n".join(usernames.values())
-                conn.send(client_list.encode())
-            elif data.startswith("CHALLENGE"):
-                target_username = data.split()[1]
-                if target_username in clients:
-                    clients[target_username].send(f"CHALLENGE {usernames[conn]}".encode())
-                else:
-                    conn.send("Invalid username".encode())
-            elif data.startswith("ACCEPT"):
-                opponent_username = data.split()[1]
-                if opponent_username in clients:
-                    start_battle(usernames[conn], opponent_username)
-                else:
-                    conn.send("Invalid username".encode())
-            elif data.startswith("MOVE"):
-                opponent_username = data.split()[1]
-                move = data.split()[2]
-                if opponent_username in clients:
-                    clients[opponent_username].send(f"MOVE {usernames[conn]} {move}".encode())
-                else:
-                    conn.send("Invalid username".encode())
+            match data.split():
+                case ["LIST"]:
+                    # Send the list of connected clients to the requesting client
+                    client_list = "Connected clients:\n" + "\n".join(usernames.values())
+                    conn.send(f"LIST {client_list}".encode())
+                case ["CHALLENGE", target_username]:
+                    if target_username in clients:
+                        clients[target_username].send(f"CHALLENGE {usernames[conn]}".encode())
+                    else:
+                        conn.send("Invalid username".encode())
+                case ["ACCEPT", opponent_username]:
+                    if opponent_username in clients:
+                        start_battle(usernames[conn], opponent_username)
+                    else:
+                        conn.send("Invalid username".encode())
+                case ["MOVE", opponent_username, move]:
+                    if opponent_username in clients:
+                        clients[opponent_username].send(f"MOVE {usernames[conn]} {move}".encode())
+                    else:
+                        conn.send("Invalid username".encode())
+                case _:
+                    print(f"Unknown command: {data}")
 
 
 

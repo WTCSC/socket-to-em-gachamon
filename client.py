@@ -2,28 +2,37 @@ import socket   # Python's built-in networking module
 from gachamon import Gachamon
 import threading
 import time
+import os
 
 def receive_messages(client):
     while True:
         try:
             message = client.recv(1024).decode()
-            if message.startswith("CHALLENGE"):
-                challenger_id = int(message.split()[1])
-                print(f"Client {challenger_id} has challenged you to a battle!")
-                response = input("Do you accept the challenge? (yes/no): ")
-                if response.lower() == "yes":
-                    client.send(f"ACCEPT {challenger_id}".encode())
-                else:
-                    print("Challenge declined.")
-            elif message.startswith("MOVE"):
-                opponent_id = int(message.split()[1])
-                move = message.split()[2]
-                print(f"Opponent {opponent_id} made a move: {move}")
-            else:
-                print(message)
+            e = message.split()
+            e = e[0]
+            match e:
+                case ["CHALLENGE", challenger_id]:
+                    print(f"Client {challenger_id} has challenged you to a battle!")
+                    response = input("Do you accept the challenge? (yes/no): ")
+                    if response.lower() == "yes":
+                        client.send(f"ACCEPT {challenger_id}".encode())
+                    else:
+                        print("Challenge declined.")
+                case ["MOVE", opponent_id, move]:
+                    print(f"Opponent {opponent_id} made a move: {move}")
+                case ["LIST"]:
+                    client_list = message.split(" ", 1)[1]
+                    clear_terminal()
+                    print(client_list + "\n \n")
+                case _:
+                    print("sent nothing")
+                    print(message)
         except Exception as e:
             print(f"Error receiving message: {e}")
             break
+
+def clear_terminal():
+    os.system('cls' if os.name == 'nt' else 'clear')
 
 def main():
     # Create a TCP socket for client-server communication
@@ -42,16 +51,15 @@ def main():
     try:
         # Attempt to establish a connection to the server
         # If the server isn't running, this will raise an exception
+        print("Waiting for server's ready signal...")
         client.connect((server_ip, port))
         print("Connected to server!")
 
-
+        time.sleep(2)
+        clear_terminal()
+        # Send the client's username to the server
         client.send(username.encode())
 
-        # Wait for the server's ready signal before starting
-        # This ensures both players are ready to begin
-        client.recv(1024).decode()
-        
         # Initialize the game board and randomly place ships
         game = Gachamon()
         print("you have joined the game")
@@ -65,13 +73,16 @@ def main():
             choice = input("Enter your choice: ")
 
             try:
-                if choice == "1":
-                    client.send("LIST".encode())
-                elif choice == "2":
-                    target_username = input("Enter the username to challenge: ")
-                    client.send(f"CHALLENGE {target_username}".encode())
-                else:
-                    print("Invalid choice")
+                match choice:
+                    case "1":
+                        client.send("LIST".encode())
+                    case "2":
+                        target_username = input("Enter the username to challenge: ")
+                        client.send(f"CHALLENGE {target_username}".encode())
+                    case _:
+                        print("Invalid choice")
+                        time.sleep(1)
+                        clear_terminal()
             except Exception as e:
                 print(f"Error sending message: {e}")
     #connection status              
