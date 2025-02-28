@@ -39,11 +39,6 @@ def handle_client(conn, addr):
                         start_battle(usernames[conn], opponent_username)
                     else:
                         conn.send("Invalid username".encode())
-                case ["MOVE", opponent_username, move]:
-                    if opponent_username in clients:
-                        clients[opponent_username].send(f"MOVE {usernames[conn]} {move}".encode())
-                    else:
-                        conn.send("Invalid username".encode())
                 case _:
                     print(f"Unknown command: {data}")
 
