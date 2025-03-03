@@ -5,9 +5,10 @@ import time
 import os
 
  # Flag to control the flow between receive_messages and choices
-continue_choices = False
+continue_choices = True
 
 def receive_messages(client):
+    global continue_choices
     while True:
         try:
             message = client.recv(1024).decode()
@@ -72,14 +73,15 @@ def main():
         print("you have joined the game")
         time.sleep(1)
         # Start a thread to receive messages from the server
-        threading.Thread(target=receive_messages, args=(client, continue_choices)).start()
+        threading.Thread(target=receive_messages, args=(client,)).start()
         clear_terminal()
 
         while True:
-            print("1. View connected clients")
-            print("2. Challenge a client to a battle")
-            choice = input("Enter your choice: ")
             if continue_choices:
+                print("1. View connected clients")
+                print("2. Challenge a client to a battle")
+                choice = input("Enter your choice: ") 
+  
                 try:
                     match choice:
                         case "1":
