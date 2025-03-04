@@ -4,11 +4,19 @@ import threading
 import time
 import os
 
- # Flag to control the flow between receive_messages and choices
+# Flag to control the flow between receive_messages and choices
 continue_choices = True
+gacha_Battle = False
+P1 = "x" #defult player 1 variable
+P2 = "y" #defult player 2 variable
+
 
 def receive_messages(client):
     global continue_choices
+    global gacha_Battle
+    global P1
+    global P2
+
     while True:
         try:
             message = client.recv(1024).decode()
@@ -20,15 +28,21 @@ def receive_messages(client):
                     response = input("Do you accept the challenge? (yes/no): ")
                     if response.lower() == "yes":
                         client.send(f"ACCEPT {challenger_id}".encode())
+                        P1 = "you"
+                        P2 = challenger_id
+                        gacha_Battle = True  # Start the battle
                     else:
                         print("Challenge declined.")
+                        continue_choices = True  # Allow choices to be shown again
                 case "LIST":
                     client_list = message.split(" ", 1)[1]
                     clear_terminal()
                     print(client_list + "\n \n" + "enter to continue:")
                     input()  # Wait for user to press Enter
-                    global continue_choices
                     continue_choices = True  # Allow choices to be shown again
+                case "Battle":
+                    print("Battle started!")
+                    gacha_Battle = True # Start the battle
                 case _:
                     print("sent nothing")
                     print(message)
@@ -41,6 +55,10 @@ def clear_terminal():
 
 def main():
     global continue_choices
+    global gacha_Battle
+    global P1
+    global P2
+
     # Create a TCP socket for client-server communication
     # TCP (Transmission Control Protocol) ensures reliable data transfer
     client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -54,8 +72,6 @@ def main():
     
     username = input("Enter your username: ")
     
-   
-
     try:
         # Attempt to establish a connection to the server
         # If the server isn't running, this will raise an exception
@@ -97,6 +113,13 @@ def main():
                             clear_terminal()
                 except Exception as e:
                     print(f"Error sending message: {e}")
+
+            if gacha_Battle:
+                try: 
+                    print(f"{P1} vs {P2}")
+                except Exception as e:
+                    print(f"Error sending message: {e}")
+
     #connection status              
     except ConnectionRefusedError:
         # This exception occurs when we can't connect to the server

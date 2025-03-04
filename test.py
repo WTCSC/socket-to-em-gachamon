@@ -28,6 +28,7 @@
 #     time.sleep(blink_interval)
 
 #192.168.56.1
+#192.168.1.27
 #python server.py
 #python client.py
 

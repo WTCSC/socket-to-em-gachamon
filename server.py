@@ -42,8 +42,6 @@ def handle_client(conn, addr):
                 case _:
                     print(f"Unknown command: {data}")
 
-
-
     except Exception as e:
         print(f"Error with client {addr}: {e}")
     finally:
