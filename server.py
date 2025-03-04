@@ -33,12 +33,19 @@ def handle_client(conn, addr):
                     if target_username in clients:
                         clients[target_username].send(f"CHALLENGE {usernames[conn]}".encode())
                     else:
-                        conn.send("Invalid username".encode())
+                        conn.send("ERROR User not found".encode())
                 case ["ACCEPT", opponent_username]:
                     if opponent_username in clients:
-                        start_battle(usernames[conn], opponent_username)
+                        first_player = random.choice([username, opponent_username])
+                        Turn1 = "1" if first_player == username else "2"
+                        Turn2 = "1" if first_player == opponent_username else "2"
+                        opponent_username.send(f"Battle {username} {Turn1}".encode())
+                        username.send(f"Battle {opponent_username} {Turn2}".encode())
                     else:
-                        conn.send("Invalid username".encode())
+                        conn.send("ERROR Challenger not found".encode())    
+                case ["DECLINE", opponent_username]:
+                    if opponent_username in clients:
+                        clients[opponent_username].send("DECLINE".encode())
                 case _:
                     print(f"Unknown command: {data}")
 
@@ -49,11 +56,6 @@ def handle_client(conn, addr):
         del clients[usernames[conn]]
         del usernames[conn]
         print(f"Connection with {addr} closed")
-
-def start_battle(client1_username, client2_username):
-    first_turn = random.choice([client1_username, client2_username])
-    clients[first_turn].send("Your turn".encode())
-    clients[client1_username if first_turn == client2_username else client2_username].send("Opponent's turn".encode())
 
 def main():
     # Create a new TCP socket for network communication

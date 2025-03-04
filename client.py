@@ -9,13 +9,14 @@ continue_choices = True
 gacha_Battle = False
 P1 = "x" #defult player 1 variable
 P2 = "y" #defult player 2 variable
-
+turn = False
 
 def receive_messages(client):
     global continue_choices
     global gacha_Battle
     global P1
     global P2
+    global turn
 
     while True:
         try:
@@ -28,12 +29,13 @@ def receive_messages(client):
                     response = input("Do you accept the challenge? (yes/no): ")
                     if response.lower() == "yes":
                         client.send(f"ACCEPT {challenger_id}".encode())
-                        P1 = "you"
-                        P2 = challenger_id
-                        gacha_Battle = True  # Start the battle
                     else:
                         print("Challenge declined.")
+                        client.send(f"DECLINE {challenger_id}".encode())
                         continue_choices = True  # Allow choices to be shown again
+                case "DECLINE":
+                    print("Challenge declined.")
+                    continue_choices = True  # Allow choices to be shown again
                 case "LIST":
                     client_list = message.split(" ", 1)[1]
                     clear_terminal()
@@ -41,8 +43,21 @@ def receive_messages(client):
                     input()  # Wait for user to press Enter
                     continue_choices = True  # Allow choices to be shown again
                 case "Battle":
-                    print("Battle started!")
+                    challenger_id = message.split(" ", 1)[1]
+                    TurnS = message.split(" ", 2)[2]
+                    if TurnS == "1":
+                        turn = True
+                    else:
+                        turn = False
+                    P1 = "you"
+                    P2 = challenger_id
+                    print(f"Battle with {challenger_id} has started!")
+                    time.sleep(1)
+                    clear_terminal()
                     gacha_Battle = True # Start the battle
+                case "MOVE":
+                    move = message.split(" ", 1)[1]
+                    print(f"Opponent's move: {move}")
                 case _:
                     print("sent nothing")
                     print(message)
@@ -58,6 +73,7 @@ def main():
     global gacha_Battle
     global P1
     global P2
+    global turn
 
     # Create a TCP socket for client-server communication
     # TCP (Transmission Control Protocol) ensures reliable data transfer
@@ -115,10 +131,30 @@ def main():
                     print(f"Error sending message: {e}")
 
             if gacha_Battle:
-                try: 
-                    print(f"{P1} vs {P2}")
-                except Exception as e:
-                    print(f"Error sending message: {e}")
+                print(f"{P1} vs {P2}")
+                time.sleep(1)   
+                clear_terminal()
+                while True:
+                    try: 
+                        if turn == True:
+                            print("It's your turn!")
+                            move = input("Enter your move: ")
+                            client.send(f"MOVE {move}".encode())
+                            turn = False
+                        else:
+                            # OPPONENT'S TURN
+                            print("\nWaiting for opponent's move...")
+                            message = client.recv(1024).decode()
+                            if message.startswith("MOVE"):
+                                turn = True
+
+                        if game == "over":
+                            print("Game Over")
+                            gacha_Battle = False
+                            continue_choices = True
+                            break
+                    except Exception as e:
+                        print(f"Error sending message: {e}")
 
     #connection status              
     except ConnectionRefusedError:
